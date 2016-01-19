@@ -1,0 +1,15 @@
+{
+  "name": "furry-species-age",
+  "version": "1.0.0",
+  "description": "Furry species and age data visualisation",
+  "author": "Ruxley",
+  "license": "MIT",
+  "private": true,
+  "main": "main.js",
+  "devDependencies": {
+    "http-server": "^0.8.5"
+  },
+  "scripts": {
+    "start": "http-server"
+  }
+}

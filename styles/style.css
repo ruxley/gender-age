@@ -44,12 +44,13 @@ body {
   width: 100;
 }
 
-.label {
+.label, .label-all {
   cursor: pointer;
+  display: block;
   margin: 0;
   padding: 0.2em;
 }
 
-.label.hover {
-  color: blue;
+.label:hover {
+  /*color: blue;*/
 }

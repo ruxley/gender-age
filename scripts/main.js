@@ -49,6 +49,7 @@
   var agesData;
   var agesMap;
   var totalSize;
+  var selectedSpecies = [];
 
   d3.select('.relative-checkbox').on('change', function () {
     if (this.checked) {
@@ -154,32 +155,59 @@
     console.log('speciesData:', speciesData);
   }
 
-  function mouseover (d) {
+  function showSelectedSpecies () {
     d3.selectAll('.species')
       .classed('faded', true)
-      .classed('hover', false);
+      .classed('active', false);
 
-    d3.select('.species.' + d.species.toLowerCase())
+    selectedSpecies.forEach(function (speciesName) {
+      d3.select('.species.' + speciesName.toLowerCase())
+        .classed('faded', false)
+        .classed('active', true);
+    });
+  }
+
+  function showAllSpecies () {
+    d3.selectAll('.species')
       .classed('faded', false)
-      .classed('hover', true);
+      .classed('active', false);
+  }
 
-    d3.selectAll('.label')
-      .classed('faded', true)
-      .classed('hover', false);
+  function mouseover (d) {
+    if (d.species === 'all') {
+      showAllSpecies();
+    } else {
+      d3.selectAll('.species')
+        .classed('faded', true)
+        .classed('active', false);
 
-    d3.select('.label.' + d.species.toLowerCase())
-      .classed('faded', false)
-      .classed('hover', true);
+      d3.select('.species.' + d.species.toLowerCase())
+        .classed('faded', false)
+        .classed('active', true);
+
+      d3.selectAll('.label')
+        .classed('faded', true)
+        .classed('active', false);
+
+      d3.select('.label.' + d.species.toLowerCase())
+        .classed('faded', false)
+        .classed('active', true);
+    }
   }
 
   function mouseout (d) {
-    d3.selectAll('.species')
-      .classed('faded', false)
-      .classed('hover', false);
+    showSelectedSpecies();
+  }
 
-    d3.selectAll('.label')
-      .classed('faded', false)
-      .classed('hover', false);
+  function onCheckboxChange (d) {
+    if (d.species === 'all') {
+      selectedSpecies = speciesData.map(function (d) {
+        return d.species;
+      });
+    } else {
+      selectedSpecies = [d.species];
+    }
+    showSelectedSpecies();
   }
 
   var baseline = svg.append('g').attr('class', 'total').append('path').attr('class', 'line');
@@ -189,19 +217,32 @@
     yAxisSVG.transition().duration(750).call(yAxis);
 
     d3.select('.labels')
+      .selectAll('.label-all')
+        .data([{species: 'all'}])
+      .enter()
+        .append('label')
+        .attr('class', 'label-all')
+        .html('<input type="radio" name="species" value="all"> All')
+        .on('mouseover', mouseover)
+        .on('mouseout', mouseout)
+        // .on('click', mouseover)
+        // .select('input')
+        .on('change', onCheckboxChange);
+
+    d3.select('.labels')
       .selectAll('.label')
         .data(speciesData)
       .enter()
-        .append('p')
-        .attr('class', function (d) {
-          return 'label ' + d.species.toLowerCase();
-        })
+        .append('label')
+        .attr('class', 'label')
         .html(function (d) {
-          return d.species + ' (' + d.totalSize + ')';
+          return '<input type="radio" name="species" value="' + d.species + '"> ' + d.species + ' (' + d.totalSize + ')';
         })
         .on('mouseover', mouseover)
         .on('mouseout', mouseout)
-        .on('click', mouseover);
+        // .on('click', mouseover)
+        .select('input')
+        .on('change', onCheckboxChange);
 
     var species = svg.selectAll('.species')
       .data(speciesData);

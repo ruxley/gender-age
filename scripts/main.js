@@ -1,5 +1,5 @@
 (function () {
-  var margin = {top: 10, right: 80, bottom: 35, left: 30};
+  var margin = {top: 15, right: 80, bottom: 35, left: 40};
   var width = 860 - margin.left - margin.right;
   var height = 500 - margin.top - margin.bottom;
 
@@ -51,25 +51,26 @@
       .attr('y', 6)
       .attr('dy', '.71em')
       .style('text-anchor', 'end')
-      .text('Respondents');
+      .text('Responses');
 
   var speciesData;
   var agesData;
   var agesMap;
   var totalSize;
   var selectedSpecies = [];
+  var baseline;
 
-  d3.select('.relative-checkbox').on('change', function () {
-    if (this.checked) {
-      setDataType('relative');
-      drawChart();
-    } else {
-      setDataType('absolute');
-      drawChart();
-    }
-  });
+  // d3.select('.relative-checkbox').on('change', function () {
+  //   if (this.checked) {
+  //     setDataType('relative');
+  //     drawChart();
+  //   } else {
+  //     setDataType('absolute');
+  //     drawChart();
+  //   }
+  // });
 
-  function processData (data) {
+  function processData(data) {
     data = data.filter(function (d) {
       return d.year === 2009 &&
         d.age > 0 && d.age < 41 &&
@@ -110,7 +111,7 @@
     });
   }
 
-  function setDataType (type) {
+  function setDataType(type) {
     // Set ratios
     speciesData.forEach(function (species) {
       species.ages.forEach(function (age) {
@@ -161,13 +162,9 @@
     }
 
     y.domain([yMin, yMax]);
-
-    console.log("agesMap:", agesMap);
-    console.log("agesData:", agesData);
-    console.log('speciesData:', speciesData);
   }
 
-  function showSelectedSpecies () {
+  function showSelectedSpecies() {
     d3.selectAll('.species')
       .classed('faded', true)
       .classed('active', false);
@@ -179,13 +176,13 @@
     });
   }
 
-  function showAllSpecies () {
+  function showAllSpecies() {
     d3.selectAll('.species')
       .classed('faded', false)
       .classed('active', false);
   }
 
-  function mouseover (d) {
+  function mouseover(d) {
     if (d.species === 'all') {
       showAllSpecies();
     } else {
@@ -196,22 +193,14 @@
       d3.select('.species.' + d.species.toLowerCase())
         .classed('faded', false)
         .classed('active', true);
-
-      // d3.selectAll('.label')
-      //   .classed('faded', true)
-      //   .classed('active', false);
-
-      // d3.select('.label.' + d.species.toLowerCase())
-      //   .classed('faded', false)
-      //   .classed('active', true);
     }
   }
 
-  function mouseout (d) {
+  function mouseout(d) {
     showSelectedSpecies();
   }
 
-  function onCheckboxChange (d) {
+  function onCheckboxChange(d) {
     if (d.species === 'all') {
       selectedSpecies = speciesData.map(function (d) {
         return d.species;
@@ -232,19 +221,17 @@
     }
   }
 
-  var baseline = svg.append('g').attr('class', 'total').append('path').attr('class', 'line');
-
-  function setupChart () {
+  function setupChart() {
     var key = svg.append('g')
       .attr('class', 'key')
-      .attr('transform', 'translate(' + (width - 120) + ', 25)');
+      .attr('transform', 'translate(' + (width - 125) + ', 25)');
 
     key.append('path')
         .attr('class', 'line')
         .attr('d', 'm0 0 h25');
 
     key.append('text')
-      .text('Average')
+      .text('Average of all')
       .attr('x', 30)
       .attr('dy', 3);
 
@@ -279,9 +266,29 @@
         // .on('click', mouseover)
         .select('input')
         .on('change', onCheckboxChange);
+
+    d3.select('body')
+      .append('label')
+      .attr('class', 'relative-checkbox')
+      .html('<input type="checkbox"> Relative')
+      .select('input')
+      .on('change', function () {
+        if (this.checked) {
+          setDataType('relative');
+          drawChart();
+        } else {
+          setDataType('absolute');
+          drawChart();
+        }
+      });
+
+    baseline = svg.append('g')
+      .attr('class', 'total')
+      .append('path')
+      .attr('class', 'line');
   }
 
-  function drawChart () {
+  function drawChart() {
     xAxisSVG.call(xAxis);
     yAxisSVG.transition().duration(750).call(yAxis);
 

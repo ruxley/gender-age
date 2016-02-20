@@ -1,9 +1,16 @@
 (function () {
+  var speciesData;
+  var agesData;
+  var agesMap;
+  var totalSize;
+  var selectedSpecies = [];
+
   var margin = {top: 15, right: 80, bottom: 35, left: 40};
   var width = 860 - margin.left - margin.right;
   var height = 500 - margin.top - margin.bottom;
 
-  var x = d3.scale.linear()
+  var x = d3.scale
+      .linear()
       .range([0, width]);
 
   var y = d3.scale.linear()
@@ -18,12 +25,12 @@
       .orient('left')
       .tickFormat(d3.format('.0%'));
 
-  var line = d3.svg.line()
+  var speciesLine = d3.svg.line()
       .interpolate('monotone')
       .x(function (d) { return x(d.age); })
       .y(function (d) { return y(d.ratio); });
 
-  var line2 = d3.svg.line()
+  var averageLine = d3.svg.line()
       .interpolate('monotone')
       .x(function (d) { return x(d.age); })
       .y(function (d) { return y(d.ratio); });
@@ -53,22 +60,38 @@
       .style('text-anchor', 'end')
       .text('Responses');
 
-  var speciesData;
-  var agesData;
-  var agesMap;
-  var totalSize;
-  var selectedSpecies = [];
-  var baseline;
+  var averageLineSVG = svg.append('g')
+    .attr('class', 'total')
+    .append('path')
+    .attr('class', 'line');
 
-  // d3.select('.relative-checkbox').on('change', function () {
-  //   if (this.checked) {
-  //     setDataType('relative');
-  //     drawChart();
-  //   } else {
-  //     setDataType('absolute');
-  //     drawChart();
-  //   }
-  // });
+  var key = svg.append('g')
+      .attr('class', 'key')
+      .attr('transform', 'translate(' + (width - 125) + ', 25)');
+
+  key.append('path')
+      .attr('class', 'line')
+      .attr('d', 'm0 0 h25');
+
+  key.append('text')
+      .text('Average of all')
+      .attr('x', 30)
+      .attr('dy', 3);
+
+  d3.select('body')
+    .append('label')
+      .attr('class', 'relative-checkbox')
+      .html('<input type="checkbox"> Relative')
+    .select('input')
+      .on('change', function () {
+        if (this.checked) {
+          setDataType('relative');
+          drawChart();
+        } else {
+          setDataType('absolute');
+          drawChart();
+        }
+      });
 
   function processData(data) {
     data = data.filter(function (d) {
@@ -106,9 +129,7 @@
       };
     });
 
-    selectedSpecies = speciesData.map(function (d) {
-      return d.species;
-    });
+    selectedSpecies = speciesData;
   }
 
   function setDataType(type) {
@@ -164,77 +185,57 @@
     y.domain([yMin, yMax]);
   }
 
-  function showSelectedSpecies() {
+  function highlightSpecies(species) {
+    // Fade all species lines out
     d3.selectAll('.species')
       .classed('faded', true)
       .classed('active', false);
 
-    selectedSpecies.forEach(function (speciesName) {
-      d3.select('.species.' + speciesName.toLowerCase())
+    // Highlight the selected lines
+    species.forEach(function (d) {
+      d3.select('.species.' + d.species.toLowerCase())
         .classed('faded', false)
         .classed('active', true);
     });
-  }
 
-  function showAllSpecies() {
-    d3.selectAll('.species')
-      .classed('faded', false)
+    // Unselect all species buttons
+    d3.select('.labels').selectAll('.label')
       .classed('active', false);
+
+    // If all species are selected then turn on the "All" button
+    // otherwise turn on the specific button
+    if (species.length === speciesData.length) {
+      d3.select('.labels .label-all').classed('active', true);
+    } else {
+      species.forEach(function (d) {
+        d3.select('.label.' + d.species.toLowerCase())
+          .classed('active', true);
+      });
+    }
   }
 
   function mouseover(d) {
     if (d.species === 'all') {
-      showAllSpecies();
+      highlightSpecies(speciesData);
     } else {
-      d3.selectAll('.species')
-        .classed('faded', true)
-        .classed('active', false);
-
-      d3.select('.species.' + d.species.toLowerCase())
-        .classed('faded', false)
-        .classed('active', true);
+      highlightSpecies([d]);
     }
   }
 
   function mouseout(d) {
-    showSelectedSpecies();
+    highlightSpecies(selectedSpecies);
   }
 
-  function onCheckboxChange(d) {
+  function onSpeciesButtonChange(d) {
     if (d.species === 'all') {
-      selectedSpecies = speciesData.map(function (d) {
-        return d.species;
-      });
+      selectedSpecies = speciesData;
     } else {
-      selectedSpecies = [d.species];
+      selectedSpecies = [d];
     }
-    showSelectedSpecies();
-
-    d3.select('.labels').selectAll('.label').classed('active', false);
-
-    if (selectedSpecies.length === speciesData.length) {
-      d3.select('.labels .label-all').classed('active', true);
-    } else {
-      d3.select('.label.' + d.species.toLowerCase())
-        // .classed('faded', false)
-        .classed('active', true);
-    }
+    highlightSpecies(selectedSpecies);
   }
 
-  function setupChart() {
-    var key = svg.append('g')
-      .attr('class', 'key')
-      .attr('transform', 'translate(' + (width - 125) + ', 25)');
-
-    key.append('path')
-        .attr('class', 'line')
-        .attr('d', 'm0 0 h25');
-
-    key.append('text')
-      .text('Average of all')
-      .attr('x', 30)
-      .attr('dy', 3);
-
+  function addSpeciesButtons() {
     d3.select('.labels')
       .selectAll('.label-all')
         .data([{species: 'all'}])
@@ -244,11 +245,9 @@
         .html('<input type="radio" name="species" value="all"> All (' + totalSize + ')')
         .on('mouseover', mouseover)
         .on('mouseout', mouseout)
-        // .on('click', mouseover)
-        // .select('input')
-        .on('change', onCheckboxChange);
-
-    d3.select('.label-all input').property('checked', true);
+      .select('input')
+        .on('change', onSpeciesButtonChange)
+        .property('checked', true);
 
     d3.select('.labels')
       .selectAll('.label')
@@ -263,38 +262,19 @@
         })
         .on('mouseover', mouseover)
         .on('mouseout', mouseout)
-        // .on('click', mouseover)
-        .select('input')
-        .on('change', onCheckboxChange);
-
-    d3.select('body')
-      .append('label')
-      .attr('class', 'relative-checkbox')
-      .html('<input type="checkbox"> Relative')
       .select('input')
-      .on('change', function () {
-        if (this.checked) {
-          setDataType('relative');
-          drawChart();
-        } else {
-          setDataType('absolute');
-          drawChart();
-        }
-      });
-
-    baseline = svg.append('g')
-      .attr('class', 'total')
-      .append('path')
-      .attr('class', 'line');
+        .on('change', onSpeciesButtonChange);
   }
 
   function drawChart() {
     xAxisSVG.call(xAxis);
     yAxisSVG.transition().duration(750).call(yAxis);
 
+    // Select
     var species = svg.selectAll('.species')
       .data(speciesData);
 
+    // Enter
     species.enter()
       .append('g')
         .attr('class', function (d) {
@@ -303,27 +283,30 @@
       .append('path')
         .attr('class', 'line')
         .attr('d', function (d) {
-          return line(d.ages);
+          return speciesLine(d.ages);
         });
 
+    // Update
     species.select('.line')
       .transition()
       .duration(750)
       .attr('d', function (d) {
-        return line(d.ages);
+        return speciesLine(d.ages);
       });
 
-    baseline
+    averageLineSVG
       .datum(agesData)
       .transition()
       .duration(750)
       .attr('d', function (d) {
-        return line2(d);
+        return averageLine(d);
       });
   }
 
+  // Load species data
   d3.csv('data/data.csv')
     .row(function (d) {
+      // Format data
       return {
         year: +d.Year,
         species: d.Species.replace('Animal', ''),
@@ -332,10 +315,11 @@
       };
     })
     .get(function (err, data) {
+      // On success
       if (!err) {
         processData(data);
         setDataType('absolute');
-        setupChart();
+        addSpeciesButtons();
         drawChart();
       }
     });

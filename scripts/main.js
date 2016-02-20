@@ -1,6 +1,6 @@
 (function () {
   var speciesData;
-  var agesData;
+  var averageAgesData;
   var agesMap;
   var totalSize;
   var selectedSpecies = [];
@@ -61,9 +61,9 @@
       .text('Responses');
 
   var averageLineSVG = svg.append('g')
-    .attr('class', 'total')
+      .attr('class', 'total')
     .append('path')
-    .attr('class', 'line');
+      .attr('class', 'line');
 
   var key = svg.append('g')
       .attr('class', 'key')
@@ -78,6 +78,7 @@
       .attr('x', 30)
       .attr('dy', 3);
 
+  // The "relative" checkbox
   d3.select('body')
     .append('label')
       .attr('class', 'relative-checkbox')
@@ -94,12 +95,15 @@
       });
 
   function processData(data) {
+    // Firstly filter out irregular data we don't want
     data = data.filter(function (d) {
       return d.year === 2009 &&
         d.age > 0 && d.age < 41 &&
         d.species.toLowerCase().indexOf('other') === -1;
     });
 
+    // We want to restructute the data to suit d3. This primarily involves grouping it by species
+    // allowing d3 to easily draw a line for each species.
     speciesData = _(data)
       .groupBy('species')
       .map(function (data, speciesName) {
@@ -115,6 +119,7 @@
 
     totalSize = _.sum(speciesData, 'totalSize');
 
+    // The agesMap is a kvp of age to total species, this is used as a quick lookup when computing.
     agesMap = speciesData.reduce(function (memo, species) {
       species.ages.forEach(function (v) {
         memo[v.age] = memo[v.age] ? memo[v.age] + v.size : v.size;
@@ -122,18 +127,22 @@
       return memo;
     }, {});
 
-    agesData = _.map(agesMap, function (v, k) {
+    // Data used to draw the red average baseline in the chart
+    averageAgesData = _.map(agesMap, function (v, k) {
       return {
         age: k,
         size: v
       };
     });
 
-    selectedSpecies = speciesData;
+    // The selected species (ie. highlighted lines). By default we select all species.
+    selectedSpecies = speciesData.map(function (d) {
+      return d.species;
+    });
   }
 
   function setDataType(type) {
-    // Set ratios
+    // Set ratios for each age depending on the type ('absolute' or 'relative')
     speciesData.forEach(function (species) {
       species.ages.forEach(function (age) {
         if (type === 'absolute') {
@@ -144,7 +153,9 @@
       });
     });
 
-    agesData.forEach(function (age) {
+    // Also set the ratios for the average age array, for the relative chart we just
+    // set the ratio to 0 so the line is straight
+    averageAgesData.forEach(function (age) {
       if (type === 'absolute') {
         age.ratio = age.size / totalSize;
       } else {
@@ -152,6 +163,7 @@
       }
     });
 
+    // Update the domains to reflect the new ranges of values
     x.domain([
       d3.min(speciesData, function (d) {
         return d3.min(d.ages, function (v) {
@@ -193,7 +205,7 @@
 
     // Highlight the selected lines
     species.forEach(function (d) {
-      d3.select('.species.' + d.species.toLowerCase())
+      d3.select('.species.' + d.toLowerCase())
         .classed('faded', false)
         .classed('active', true);
     });
@@ -202,40 +214,21 @@
     d3.select('.labels').selectAll('.label')
       .classed('active', false);
 
-    // If all species are selected then turn on the "All" button
-    // otherwise turn on the specific button
+    // If all species are selected then highlight the "All" button
+    // otherwise highlight the specific species button
     if (species.length === speciesData.length) {
       d3.select('.labels .label-all').classed('active', true);
     } else {
       species.forEach(function (d) {
-        d3.select('.label.' + d.species.toLowerCase())
+        d3.select('.label.' + d.toLowerCase())
           .classed('active', true);
       });
     }
   }
 
-  function mouseover(d) {
-    if (d.species === 'all') {
-      highlightSpecies(speciesData);
-    } else {
-      highlightSpecies([d]);
-    }
-  }
-
-  function mouseout(d) {
-    highlightSpecies(selectedSpecies);
-  }
-
-  function onSpeciesButtonChange(d) {
-    if (d.species === 'all') {
-      selectedSpecies = speciesData;
-    } else {
-      selectedSpecies = [d];
-    }
-    highlightSpecies(selectedSpecies);
-  }
-
   function addSpeciesButtons() {
+    // The "All" button. We create a fake species with a name of "all" to fudge
+    // this behaviour into the rest of the chart
     d3.select('.labels')
       .selectAll('.label-all')
         .data([{species: 'all'}])
@@ -243,12 +236,13 @@
         .append('label')
         .attr('class', 'label-all')
         .html('<input type="radio" name="species" value="all"> All (' + totalSize + ')')
-        .on('mouseover', mouseover)
-        .on('mouseout', mouseout)
+        .on('mouseover', onSpeciesButtonOver)
+        .on('mouseout', onSpeciesButtonOut)
       .select('input')
         .on('change', onSpeciesButtonChange)
         .property('checked', true);
 
+    // Create the labels for each of the species
     d3.select('.labels')
       .selectAll('.label')
         .data(speciesData)
@@ -260,10 +254,35 @@
         .html(function (d) {
           return '<input type="radio" name="species" value="' + d.species + '"> ' + d.species.replace('-', ' ') + ' (' + d.totalSize + ')';
         })
-        .on('mouseover', mouseover)
-        .on('mouseout', mouseout)
+        .on('mouseover', onSpeciesButtonOver)
+        .on('mouseout', onSpeciesButtonOut)
       .select('input')
         .on('change', onSpeciesButtonChange);
+  }
+
+  function onSpeciesButtonOver(d) {
+    if (d.species === 'all') {
+      highlightSpecies(speciesData.map(function (d) {
+        return d.species;
+      }));
+    } else {
+      highlightSpecies([d.species]);
+    }
+  }
+
+  function onSpeciesButtonOut(d) {
+    highlightSpecies(selectedSpecies);
+  }
+
+  function onSpeciesButtonChange(d) {
+    if (d.species === 'all') {
+      selectedSpecies = speciesData.map(function (d) {
+        return d.species;
+      });
+    } else {
+      selectedSpecies = [d.species];
+    }
+    highlightSpecies(selectedSpecies);
   }
 
   function drawChart() {
@@ -295,7 +314,7 @@
       });
 
     averageLineSVG
-      .datum(agesData)
+      .datum(averageAgesData)
       .transition()
       .duration(750)
       .attr('d', function (d) {

@@ -1,6 +1,6 @@
 (function () {
-  var margin = {top: 20, right: 80, bottom: 35, left: 50};
-  var width = 960 - margin.left - margin.right;
+  var margin = {top: 10, right: 80, bottom: 35, left: 30};
+  var width = 860 - margin.left - margin.right;
   var height = 500 - margin.top - margin.bottom;
 
   var x = d3.scale.linear()
@@ -37,13 +37,21 @@
   var xAxisSVG = svg.append('g')
       .attr('class', 'x axis')
       .attr('transform', 'translate(0,' + height + ')');
+
   xAxisSVG.append('text')
-      .attr('y', 32)
-      .attr('x', 405)
+      .attr('y', 30)
+      .attr('x', 418)
       .text('Age');
 
   var yAxisSVG = svg.append('g')
       .attr('class', 'y axis');
+
+  yAxisSVG.append('text')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', 6)
+      .attr('dy', '.71em')
+      .style('text-anchor', 'end')
+      .text('Respondents');
 
   var speciesData;
   var agesData;
@@ -95,6 +103,10 @@
         age: k,
         size: v
       };
+    });
+
+    selectedSpecies = speciesData.map(function (d) {
+      return d.species;
     });
   }
 
@@ -185,13 +197,13 @@
         .classed('faded', false)
         .classed('active', true);
 
-      d3.selectAll('.label')
-        .classed('faded', true)
-        .classed('active', false);
+      // d3.selectAll('.label')
+      //   .classed('faded', true)
+      //   .classed('active', false);
 
-      d3.select('.label.' + d.species.toLowerCase())
-        .classed('faded', false)
-        .classed('active', true);
+      // d3.select('.label.' + d.species.toLowerCase())
+      //   .classed('faded', false)
+      //   .classed('active', true);
     }
   }
 
@@ -208,13 +220,33 @@
       selectedSpecies = [d.species];
     }
     showSelectedSpecies();
+
+    d3.select('.labels').selectAll('.label').classed('active', false);
+
+    if (selectedSpecies.length === speciesData.length) {
+      d3.select('.labels .label-all').classed('active', true);
+    } else {
+      d3.select('.label.' + d.species.toLowerCase())
+        // .classed('faded', false)
+        .classed('active', true);
+    }
   }
 
   var baseline = svg.append('g').attr('class', 'total').append('path').attr('class', 'line');
 
-  function drawChart () {
-    xAxisSVG.call(xAxis);
-    yAxisSVG.transition().duration(750).call(yAxis);
+  function setupChart () {
+    var key = svg.append('g')
+      .attr('class', 'key')
+      .attr('transform', 'translate(' + (width - 120) + ', 25)');
+
+    key.append('path')
+        .attr('class', 'line')
+        .attr('d', 'm0 0 h25');
+
+    key.append('text')
+      .text('Average')
+      .attr('x', 30)
+      .attr('dy', 3);
 
     d3.select('.labels')
       .selectAll('.label-all')
@@ -222,27 +254,36 @@
       .enter()
         .append('label')
         .attr('class', 'label-all')
-        .html('<input type="radio" name="species" value="all"> All')
+        .html('<input type="radio" name="species" value="all"> All (' + totalSize + ')')
         .on('mouseover', mouseover)
         .on('mouseout', mouseout)
         // .on('click', mouseover)
         // .select('input')
         .on('change', onCheckboxChange);
 
+    d3.select('.label-all input').property('checked', true);
+
     d3.select('.labels')
       .selectAll('.label')
         .data(speciesData)
       .enter()
         .append('label')
-        .attr('class', 'label')
+        .attr('class', function (d) {
+          return 'label ' + d.species.toLowerCase();
+        })
         .html(function (d) {
-          return '<input type="radio" name="species" value="' + d.species + '"> ' + d.species + ' (' + d.totalSize + ')';
+          return '<input type="radio" name="species" value="' + d.species + '"> ' + d.species.replace('-', ' ') + ' (' + d.totalSize + ')';
         })
         .on('mouseover', mouseover)
         .on('mouseout', mouseout)
         // .on('click', mouseover)
         .select('input')
         .on('change', onCheckboxChange);
+  }
+
+  function drawChart () {
+    xAxisSVG.call(xAxis);
+    yAxisSVG.transition().duration(750).call(yAxis);
 
     var species = svg.selectAll('.species')
       .data(speciesData);
@@ -287,6 +328,7 @@
       if (!err) {
         processData(data);
         setDataType('absolute');
+        setupChart();
         drawChart();
       }
     });

@@ -1,6 +1,6 @@
 (function () {
   var speciesData;
-  var averageAgesData;
+  var agesData;
   var agesMap;
   var totalSize;
   var selectedSpecies = [];
@@ -67,16 +67,33 @@
 
   var key = svg.append('g')
       .attr('class', 'key')
-      .attr('transform', 'translate(' + (width - 125) + ', 25)');
+      .attr('transform', 'translate(' + (width - 230) + ', 25)');
 
-  key.append('path')
+  var keyAll = key.append('g')
+      .attr('class', 'key-all');
+
+  keyAll.append('path')
       .attr('class', 'line')
       .attr('d', 'm0 0 h25');
 
-  key.append('text')
-      .text('Average of all')
+  keyAll.append('text')
+      .text('All species')
       .attr('x', 30)
-      .attr('dy', 3);
+      .attr('y', 3);
+
+  var keySpecies = key.append('g')
+      .attr('class', 'key-species');
+
+  keySpecies.append('path')
+      .attr('class', 'line')
+      .attr('d', 'm0 22 h25');
+
+  keySpecies.append('text')
+      .text('All species')
+      .attr('x', 30)
+      .attr('y', 25);
+
+  keySpecies.attr('visibility', 'hidden');
 
   // The "relative" checkbox
   d3.select('body')
@@ -128,17 +145,25 @@
     }, {});
 
     // Data used to draw the red average baseline in the chart
-    averageAgesData = _.map(agesMap, function (v, k) {
+    agesData = _.map(agesMap, function (v, k) {
       return {
-        age: k,
+        age: +k,
         size: v
       };
     });
 
     // The selected species (ie. highlighted lines). By default we select all species.
-    selectedSpecies = speciesData.map(function (d) {
-      return d.species;
+    selectedSpecies = _.clone(speciesData);
+  }
+
+  function getAverageAge(ageData) {
+    var agesSum = 0;
+    var sizeSum = 0;
+    ageData.forEach(function (d) {
+      agesSum += d.age * d.size;
+      sizeSum += d.size;
     });
+    return agesSum / sizeSum;
   }
 
   function setDataType(type) {
@@ -155,7 +180,7 @@
 
     // Also set the ratios for the average age array, for the relative chart we just
     // set the ratio to 0 so the line is straight
-    averageAgesData.forEach(function (age) {
+    agesData.forEach(function (age) {
       if (type === 'absolute') {
         age.ratio = age.size / totalSize;
       } else {
@@ -205,11 +230,13 @@
 
     // Highlight the selected lines
     species.forEach(function (d) {
-      d3.select('.species.' + d.toLowerCase())
+      d3.select('.species.' + d.species.toLowerCase())
         .classed('faded', false)
         .classed('active', true);
     });
+  }
 
+  function highlightSpeciesButton(species) {
     // Unselect all species buttons
     d3.select('.labels').selectAll('.label')
       .classed('active', false);
@@ -220,9 +247,21 @@
       d3.select('.labels .label-all').classed('active', true);
     } else {
       species.forEach(function (d) {
-        d3.select('.label.' + d.toLowerCase())
+        d3.select('.label.' + d.species.toLowerCase())
           .classed('active', true);
       });
+    }
+  }
+
+  function updateKey(species) {
+    keyAll.select('text').text('Average of all (average age ' + getAverageAge(agesData).toFixed(2) + ')');
+
+    if (species.length === speciesData.length) {
+      keySpecies.select('text').text('All species (average age ' + getAverageAge(agesData).toFixed(2) + ')');
+      keySpecies.attr('visibility', 'visible');
+    } else {
+      keySpecies.select('text').text(species[0].species.replace('-', ' ') + ' (average age ' + getAverageAge(species[0].ages).toFixed(2) + ')');
+      keySpecies.attr('visibility', 'visible');
     }
   }
 
@@ -261,28 +300,30 @@
   }
 
   function onSpeciesButtonOver(d) {
+    var speciesToHighlight;
     if (d.species === 'all') {
-      highlightSpecies(speciesData.map(function (d) {
-        return d.species;
-      }));
+      speciesToHighlight = _.clone(speciesData);
     } else {
-      highlightSpecies([d.species]);
+      speciesToHighlight = [d];
     }
+    highlightSpecies(speciesToHighlight);
+    updateKey(speciesToHighlight);
   }
 
   function onSpeciesButtonOut(d) {
     highlightSpecies(selectedSpecies);
+    updateKey(selectedSpecies);
   }
 
   function onSpeciesButtonChange(d) {
     if (d.species === 'all') {
-      selectedSpecies = speciesData.map(function (d) {
-        return d.species;
-      });
+      selectedSpecies = _.clone(speciesData);
     } else {
-      selectedSpecies = [d.species];
+      selectedSpecies = [d];
     }
     highlightSpecies(selectedSpecies);
+    highlightSpeciesButton(selectedSpecies);
+    updateKey(selectedSpecies);
   }
 
   function drawChart() {
@@ -304,6 +345,8 @@
         .attr('d', function (d) {
           return speciesLine(d.ages);
         });
+        // .on('mouseover', onSpeciesButtonOver)
+        // .on('mouseout', onSpeciesButtonOut);
 
     // Update
     species.select('.line')
@@ -314,7 +357,7 @@
       });
 
     averageLineSVG
-      .datum(averageAgesData)
+      .datum(agesData)
       .transition()
       .duration(750)
       .attr('d', function (d) {
@@ -339,6 +382,7 @@
         processData(data);
         setDataType('absolute');
         addSpeciesButtons();
+        updateKey(selectedSpecies);
         drawChart();
       }
     });

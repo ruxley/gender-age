@@ -67,6 +67,16 @@ body {
   font-size: 12px;
 }
 
-.key .line {
+.key .key-all .line {
   stroke: red;
+  stroke-width: 1.5px;
+}
+
+.key .key-species .line {
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.relative-checkbox {
+  margin-left: 37px;
 }

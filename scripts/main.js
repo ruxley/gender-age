@@ -2,7 +2,8 @@
   var speciesData;
   var agesData;
   var agesMap;
-  var totalSize;
+  var totalCountOfAllSpecies;
+  var averageAgeOfAllSpecies;
   var selectedSpecies = [];
 
   var margin = {top: 15, right: 80, bottom: 35, left: 40};
@@ -67,7 +68,7 @@
 
   var key = svg.append('g')
       .attr('class', 'key')
-      .attr('transform', 'translate(' + (width - 230) + ', 25)');
+      .attr('transform', 'translate(' + (width - 235) + ', 25)');
 
   var keyAll = key.append('g')
       .attr('class', 'key-all');
@@ -111,12 +112,20 @@
         }
       });
 
+  function getAverageAge(ageData) {
+    var agesSum = 0;
+    var countSum = 0;
+    ageData.forEach(function (d) {
+      agesSum += d.age * d.count;
+      countSum += d.count;
+    });
+    return agesSum / countSum;
+  }
+
   function processData(data) {
     // Firstly filter out irregular data we don't want
     data = data.filter(function (d) {
-      return d.year === 2009 &&
-        d.age > 0 && d.age < 41 &&
-        d.species.toLowerCase().indexOf('other') === -1;
+      return d.age >= 10 && d.age <= 90;
     });
 
     // We want to restructute the data to suit d3. This primarily involves grouping it by species
@@ -126,20 +135,21 @@
       .map(function (data, speciesName) {
         return {
           species: speciesName,
+          speciesName: _.capitalize(speciesName.replace('-', ' ')),
           ages: _.sortBy(data, 'age'),
-          totalSize: _.sum(data, 'size')
+          totalCount: _.sum(data, 'count'),
+          averageAge: getAverageAge(data)
         };
       })
-      .sortByOrder(['totalSize'], ['desc'])
-      .slice(0, 20)
+      .sortByOrder(['totalCount'], ['desc'])
       .value();
 
-    totalSize = _.sum(speciesData, 'totalSize');
+    totalCountOfAllSpecies = _.sum(speciesData, 'totalCount');
 
     // The agesMap is a kvp of age to total species, this is used as a quick lookup when computing.
     agesMap = speciesData.reduce(function (memo, species) {
       species.ages.forEach(function (v) {
-        memo[v.age] = memo[v.age] ? memo[v.age] + v.size : v.size;
+        memo[v.age] = memo[v.age] ? memo[v.age] + v.count : v.count;
       });
       return memo;
     }, {});
@@ -148,22 +158,28 @@
     agesData = _.map(agesMap, function (v, k) {
       return {
         age: +k,
-        size: v
+        count: v
       };
+    });
+
+    averageAgeOfAllSpecies = getAverageAge(agesData);
+
+    speciesData = speciesData.filter(function (d) {
+      return d.species.toLowerCase().indexOf('other') === -1;
+    });
+    speciesData.forEach(function (d) {
+      d.ages = d.ages.filter(function (v) {
+        return v.age <= 40;
+      });
+    });
+    speciesData = speciesData.slice(0, 20);
+
+    agesData = agesData.filter(function (d) {
+      return d.age <= 40;
     });
 
     // The selected species (ie. highlighted lines). By default we select all species.
     selectedSpecies = _.clone(speciesData);
-  }
-
-  function getAverageAge(ageData) {
-    var agesSum = 0;
-    var sizeSum = 0;
-    ageData.forEach(function (d) {
-      agesSum += d.age * d.size;
-      sizeSum += d.size;
-    });
-    return agesSum / sizeSum;
   }
 
   function setDataType(type) {
@@ -171,9 +187,9 @@
     speciesData.forEach(function (species) {
       species.ages.forEach(function (age) {
         if (type === 'absolute') {
-          age.ratio = age.size / species.totalSize;
+          age.ratio = age.count / species.totalCount;
         } else {
-          age.ratio = (age.size / species.totalSize) - (agesMap[age.age] / totalSize);
+          age.ratio = (age.count / species.totalCount) - (agesMap[age.age] / totalCountOfAllSpecies);
         }
       });
     });
@@ -182,13 +198,13 @@
     // set the ratio to 0 so the line is straight
     agesData.forEach(function (age) {
       if (type === 'absolute') {
-        age.ratio = age.size / totalSize;
+        age.ratio = age.count / totalCountOfAllSpecies;
       } else {
         age.ratio = 0;
       }
     });
 
-    // Update the domains to reflect the new ranges of values
+    // Update the axis domain scales to reflect the new ranges of values
     x.domain([
       d3.min(speciesData, function (d) {
         return d3.min(d.ages, function (v) {
@@ -220,6 +236,45 @@
     }
 
     y.domain([yMin, yMax]);
+  }
+
+  function drawChart() {
+    xAxisSVG.call(xAxis);
+    yAxisSVG.transition().duration(750).call(yAxis);
+
+    // Select
+    var species = svg.selectAll('.species')
+      .data(speciesData);
+
+    // Enter
+    species.enter()
+      .append('g')
+        .attr('class', function (d) {
+          return 'species ' + d.species.toLowerCase();
+        })
+      .append('path')
+        .attr('class', 'line')
+        .attr('d', function (d) {
+          return speciesLine(d.ages);
+        })
+        .on('mouseover', onSpeciesButtonOver)
+        .on('mouseout', onSpeciesButtonOut);
+
+    // Update
+    species.select('.line')
+      .transition()
+      .duration(750)
+      .attr('d', function (d) {
+        return speciesLine(d.ages);
+      });
+
+    averageLineSVG
+      .datum(agesData)
+      .transition()
+      .duration(750)
+      .attr('d', function (d) {
+        return averageLine(d);
+      });
   }
 
   function highlightSpecies(species) {
@@ -254,13 +309,13 @@
   }
 
   function updateKey(species) {
-    keyAll.select('text').text('Average of all (average age ' + getAverageAge(agesData).toFixed(2) + ')');
+    keyAll.select('text').text('Average of all (average age ' + averageAgeOfAllSpecies.toFixed(2) + ')');
 
     if (species.length === speciesData.length) {
-      keySpecies.select('text').text('All species (average age ' + getAverageAge(agesData).toFixed(2) + ')');
+      keySpecies.select('text').text('All species (average age ' + averageAgeOfAllSpecies.toFixed(2) + ')');
       keySpecies.attr('visibility', 'visible');
     } else {
-      keySpecies.select('text').text(species[0].species.replace('-', ' ') + ' (average age ' + getAverageAge(species[0].ages).toFixed(2) + ')');
+      keySpecies.select('text').text(species[0].speciesName + ' (average age ' + species[0].averageAge.toFixed(2) + ')');
       keySpecies.attr('visibility', 'visible');
     }
   }
@@ -274,7 +329,7 @@
       .enter()
         .append('label')
         .attr('class', 'label-all')
-        .html('<input type="radio" name="species" value="all"> All (' + totalSize + ')')
+        .html('<input type="radio" name="species" value="all"> All (' + totalCountOfAllSpecies + ')')
         .on('mouseover', onSpeciesButtonOver)
         .on('mouseout', onSpeciesButtonOut)
       .select('input')
@@ -291,7 +346,7 @@
           return 'label ' + d.species.toLowerCase();
         })
         .html(function (d) {
-          return '<input type="radio" name="species" value="' + d.species + '"> ' + d.species.replace('-', ' ') + ' (' + d.totalSize + ')';
+          return '<input type="radio" name="species" value="' + d.species + '"> ' + d.speciesName + ' (' + d.totalCount + ')';
         })
         .on('mouseover', onSpeciesButtonOver)
         .on('mouseout', onSpeciesButtonOut)
@@ -326,54 +381,14 @@
     updateKey(selectedSpecies);
   }
 
-  function drawChart() {
-    xAxisSVG.call(xAxis);
-    yAxisSVG.transition().duration(750).call(yAxis);
-
-    // Select
-    var species = svg.selectAll('.species')
-      .data(speciesData);
-
-    // Enter
-    species.enter()
-      .append('g')
-        .attr('class', function (d) {
-          return 'species ' + d.species.toLowerCase();
-        })
-      .append('path')
-        .attr('class', 'line')
-        .attr('d', function (d) {
-          return speciesLine(d.ages);
-        });
-        // .on('mouseover', onSpeciesButtonOver)
-        // .on('mouseout', onSpeciesButtonOut);
-
-    // Update
-    species.select('.line')
-      .transition()
-      .duration(750)
-      .attr('d', function (d) {
-        return speciesLine(d.ages);
-      });
-
-    averageLineSVG
-      .datum(agesData)
-      .transition()
-      .duration(750)
-      .attr('d', function (d) {
-        return averageLine(d);
-      });
-  }
-
   // Load species data
-  d3.csv('data/data.csv')
+  d3.csv('data/2015.csv')
     .row(function (d) {
       // Format data
       return {
-        year: +d.Year,
-        species: d.Species.replace('Animal', ''),
-        age: +d.Age,
-        size: +d.SampleSize
+        species: d.species,
+        age: +d.age,
+        count: +d.count
       };
     })
     .get(function (err, data) {

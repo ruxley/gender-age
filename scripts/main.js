@@ -117,6 +117,11 @@
         }
       });
 
+  /**
+   * Returns the average age of an array of age objects
+   * @param  {Array} ageData Array of age objects, containing .age and .count properties
+   * @return {Number}
+   */
   function getAverageAge(ageData) {
     var agesSum = 0;
     var countSum = 0;
@@ -127,14 +132,19 @@
     return agesSum / countSum;
   }
 
+  /**
+   * Processes the data immediately after it's been loaded and parsed by D3. It restructures it into
+   * a format that's more sympathetic to D3's drawing.
+   * @param  {Array} data Basic array of parsed CSV data
+   */
   function processData(data) {
-    // Firstly filter out spurious data we don't want
+    // Firstly filter out data we don't want
     data = data.filter(function (d) {
       return d.age >= 10 && d.age <= 90;
     });
 
-    // Next we want to structure the data for d3, so we group by species and sum up a few values
-    // All of the calculations are done up-front, before we cut the data down to the top 20 species
+    // Next we want to structure the data for d3, so we group by species and sum up a few values.
+    // All of the calculations are done up-front before we cut the data down to the top 20 species.
     speciesData = _(data)
       .groupBy('speciesId')
       .map(function (ageData, speciesId) {
@@ -170,7 +180,8 @@
 
     averageAgeAcrossAllSpecies = getAverageAge(agesData);
 
-    // Finally we want to cut the data down to the top 20 species and responses below age 40
+    // Finally we want to cut the data down to the top 20 species, filter out "other" species,
+    // and only include responses below age 40
     speciesData = _(speciesData)
       .filter(function (d) {
         return d.speciesId.toLowerCase().indexOf('other') === -1;
@@ -194,6 +205,10 @@
     selectedSpecies = _.clone(speciesData);
   }
 
+  /**
+   * Sets the absolute or relative data types by adjusting the ratio values in the data.
+   * @param {String} type Either "absolute" or "relative"
+   */
   function setDataType(type) {
     // Set ratios for each age depending on the type ('absolute' or 'relative')
     speciesData.forEach(function (species) {
@@ -250,6 +265,9 @@
     y.domain([yMin, yMax]);
   }
 
+  /**
+   * Draws the chart. Called whenever the user switches from absolute to relative.
+   */
   function drawChart() {
     xAxisSVG.call(xAxis);
     yAxisSVG.transition().duration(750).call(yAxis);
@@ -290,6 +308,10 @@
       });
   }
 
+  /**
+   * Highlights the given species lines on the chart
+   * @param  {Array} speciesToHighlight Array of species objects
+   */
   function highlightSpecies(speciesToHighlight) {
     // Fade all species lines out
     d3.selectAll('.species')
@@ -304,6 +326,10 @@
     });
   }
 
+  /**
+   * Highlights the given species buttons next to the chart
+   * @param  {Array} speciesToHighlight Array of species objects
+   */
   function highlightSpeciesButton(speciesToHighlight) {
     // Unselect all species buttons
     d3.select('.labels').selectAll('.label')
@@ -321,6 +347,10 @@
     }
   }
 
+  /**
+   * Update the key in the chart to show the average of the currently highlighted species
+   * @param  {Array} speciesToUpdate Array of species objects (only the first entry is used)
+   */
   function updateKey(speciesToUpdate) {
     keyAll.select('text').text('Average of all (average age ' + averageAgeAcrossAllSpecies.toFixed(2) + ')');
 
@@ -332,6 +362,9 @@
     }
   }
 
+  /**
+   * Adds the species buttons to the right of the chart
+   */
   function addSpeciesButtons() {
     // The "All" button. We create a fake species with a name of "all" to fudge
     // this behaviour into the rest of the chart

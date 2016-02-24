@@ -23,7 +23,7 @@ other-dog,17,30
 other,17,130
 red-fox,19,127
 arctic-fox,19,42
-german-shepherd,19,18
+german-shep,19,18
 husky,19,57
 tiger,19,56
 lion,19,31
@@ -47,7 +47,7 @@ cougar,37,2
 wolf,14,71
 husky,14,21
 wolf,20,186
-german-shepherd,20,15
+german-shep,20,15
 red-fox,22,54
 red-fox,30,13
 other-dog,20,40
@@ -321,8 +321,8 @@ other-fox,24,23
 squirrel,25,9
 bat,25,4
 wolf,28,45
-german-shepherd,28,4
-german-shepherd,32,2
+german-shep,28,4
+german-shep,32,2
 red-fox,39,3
 raccoon,39,1
 squirrel,39,1
@@ -535,7 +535,7 @@ monkey,22,3
 arctic-fox,26,10
 wolf,37,6
 dinosaur,27,2
-german-shepherd,23,5
+german-shep,23,5
 other-bird,23,11
 red-fox,21,66
 lizard,20,20
@@ -577,7 +577,7 @@ leopard,19,27
 red-fox,15,57
 raven,15,4
 domestic-cat,25,35
-german-shepherd,21,16
+german-shep,21,16
 tiger,26,19
 badger,34,1
 coyote,24,13
@@ -648,7 +648,7 @@ arctic-fox,43,2
 lion,43,2
 skunk,43,2
 rabbit,43,1
-german-shepherd,31,3
+german-shep,31,3
 arctic-fox,35,2
 other-fox,30,5
 rat,36,1
@@ -698,7 +698,7 @@ domestic-cat,55,1
 rabbit,55,1
 lion,38,2
 leopard,38,2
-german-shepherd,27,2
+german-shep,27,2
 red-fox,33,3
 sea-otter,33,1
 other-reptile,20,12
@@ -738,7 +738,7 @@ leopard,32,4
 horse,32,4
 domestic-cat,37,2
 polar-bear,32,1
-german-shepherd,25,8
+german-shep,25,8
 raccoon,18,24
 kitsune,24,19
 dinosaur,19,13
@@ -802,7 +802,7 @@ brown-bear,31,2
 pandabear,31,1
 dragon,32,8
 lemur,21,3
-german-shepherd,24,4
+german-shep,24,4
 grizzly-bear,22,7
 pandabear,19,10
 wolf,40,4
@@ -823,9 +823,9 @@ red-fox,12,4
 skunk,12,2
 other-feline,,7
 dragon,40,4
-german-shepherd,30,2
+german-shep,30,2
 deer,45,2
-german-shepherd,26,7
+german-shep,26,7
 sea-otter,26,3
 coyote,16,21
 sea-otter,43,1
@@ -851,7 +851,7 @@ other-feline,35,2
 raccoon,35,3
 badger,35,1
 monkey,35,1
-german-shepherd,35,2
+german-shep,35,2
 river-otter,20,17
 red-fox,,22
 arctic-fox,20,31
@@ -882,7 +882,7 @@ mouse,29,2
 dragon,43,1
 horse,43,1
 leopard,39,1
-german-shepherd,22,7
+german-shep,22,7
 weasel,25,2
 skunk,16,11
 tiger,15,23
@@ -931,7 +931,7 @@ bat,18,15
 kangaroo,24,3
 brown-bear,46,1
 river-otter,,7
-german-shepherd,17,15
+german-shep,17,15
 raven,29,6
 lion,50,1
 other-feline,50,1
@@ -1054,7 +1054,7 @@ other-reptile,25,3
 other-bird,30,1
 dragon,59,1
 wolf,49,2
-german-shepherd,49,1
+german-shep,49,1
 other-feline,31,3
 othercanine,,6
 cougar,20,10
@@ -1124,13 +1124,13 @@ polar-bear,22,4
 other-mustelid,30,1
 other-bird,41,2
 other-fox,16,25
-german-shepherd,16,8
+german-shep,16,8
 other-musteloid,16,7
 husky,41,1
 domestic-cat,40,2
 raven,26,2
 coyote,15,12
-german-shepherd,15,8
+german-shep,15,8
 river-otter,15,11
 sea-otter,15,4
 weasel,15,4
@@ -1152,7 +1152,7 @@ other-feline,14,8
 othermarsupial,27,3
 other-ungulate,33,2
 hyena,33,2
-german-shepherd,,3
+german-shep,,3
 husky,,4
 other-bird,25,5
 arctic-fox,46,1
@@ -1228,7 +1228,7 @@ red-fox,14,27
 grey-fox,14,11
 arctic-fox,14,13
 coyote,14,7
-german-shepherd,14,11
+german-shep,14,11
 collie,14,3
 other-dog,14,10
 othercanine,14,6
@@ -1278,7 +1278,7 @@ raccoon,29,2
 cheetah,58,1
 red-panda,27,2
 red-panda,15,3
-german-shepherd,46,2
+german-shep,46,2
 river-otter,30,3
 skunk,17,7
 deer,23,5
@@ -1339,7 +1339,7 @@ bat,30,1
 red-fox,43,1
 other-dog,43,2
 grizzly-bear,25,6
-german-shepherd,18,9
+german-shep,18,9
 mouse,26,4
 raptor,30,2
 raptor,15,9
@@ -1443,7 +1443,7 @@ kitsune,22,8
 other-feline,48,1
 red-fox,35,2
 skunk,,3
-german-shepherd,44,1
+german-shep,44,1
 other-dog,44,1
 other,44,3
 coyote,35,1
@@ -1468,7 +1468,7 @@ other-feline,44,1
 polar-bear,31,1
 lizard,15,5
 cougar,30,1
-german-shepherd,36,1
+german-shep,36,1
 lion,36,1
 grey-fox,13,4
 coyote,13,3
@@ -1493,7 +1493,7 @@ arctic-fox,97,1
 kitsune,97,1
 other-fox,97,1
 coyote,97,1
-german-shepherd,97,1
+german-shep,97,1
 husky,97,1
 collie,97,1
 other-dog,97,1
@@ -1585,7 +1585,7 @@ tiger,48,1
 other-reptile,31,1
 monkey,28,1
 tiger,49,2
-german-shepherd,33,1
+german-shep,33,1
 rabbit,52,1
 kitsune,43,1
 dinosaur,14,2
@@ -1621,7 +1621,7 @@ rat,47,1
 lizard,11,1
 dinosaur,11,1
 brown-bear,24,1
-german-shepherd,12,3
+german-shep,12,3
 hyena,12,2
 polar-bear,21,1
 red-fox,37,1
@@ -1732,11 +1732,11 @@ raven,13,1
 griffin,13,1
 monkey,24,1
 hyena,40,1
-german-shepherd,13,1
+german-shep,13,1
 other,108,1
 othermarsupial,108,1
 wolf,57,1
-german-shepherd,57,1
+german-shep,57,1
 husky,57,1
 lion,57,1
 dinosaur,57,1

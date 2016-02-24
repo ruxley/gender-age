@@ -85,7 +85,7 @@
       .attr('d', 'm0 0 h25');
 
   keyAll.append('text')
-      .text('All species')
+      .text('Average of all')
       .attr('x', 30)
       .attr('y', 3);
 

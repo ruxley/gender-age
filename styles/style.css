@@ -1,6 +1,6 @@
 .chart-container {
   font-family: sans-serif;
-  font-size: 12px;
+  font-size: 13px;
   position: relative;
 }
 
@@ -16,11 +16,11 @@
 }
 
 .x.axis .domain {
-  transform: translate(0.5px, 0.5px);
+  /*transform: translate(0.5px, 0.5px);*/
 }
 
 .y.axis .domain {
-  transform: translate(0.5px, 0.5px);
+  /*transform: translate(0.5px, 0.5px);*/
 }
 
 .line {
@@ -28,11 +28,11 @@
   stroke-width: 1.5px;
 }
 
-.species {
+.gender {
   stroke: steelblue;
 }
 
-.species.faded {
+.gender.faded {
   opacity: 0.08;
 }
 
@@ -42,12 +42,12 @@
 }
 
 .chart-container .labels {
-  left: 800px;
+  left: 710px;
   position: absolute;
   top: 0;
 }
 
-.label-species, .label-all {
+.label-gender, .label-all {
   clear: both;
   cursor: pointer;
   display: block;
@@ -57,11 +57,11 @@
   width: auto;
 }
 
-.label-species:hover, .label-all:hover {
+.label-gender:hover, .label-all:hover {
   color: #3B79F0;
 }
 
-/*.label-species.active, .label-all.active {
+/*.label-gender.active, .label-all.active {
   font-weight: bold;
   color: #3B79F0;
 }*/
@@ -75,7 +75,7 @@
   stroke-width: 1.5px;
 }
 
-.key .key-species .line {
+.key .key-gender .line {
   stroke: steelblue;
   stroke-width: 1.5px;
 }
